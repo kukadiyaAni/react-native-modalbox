@@ -13,7 +13,7 @@ import {
   Modal,
   Keyboard
 } from 'react-native';
-
+let closingState=false;
 const {height: SCREEN_HEIGHT, width: SCREEN_WIDTH} = Dimensions.get('window');
 const styles = StyleSheet.create({
   wrapper: {
@@ -226,6 +226,7 @@ export default class ModalBox extends React.PureComponent {
    */
   stopAnimateOpen() {
     if (this.state.isAnimateOpen) {
+      
       if (this.state.animOpen) this.state.animOpen.stop();
       this.setState({isAnimateOpen: false});
     }
@@ -236,7 +237,7 @@ export default class ModalBox extends React.PureComponent {
    */
   animateOpen() {
     this.stopAnimateClose();
-
+    
     // Backdrop fadeIn
     if (this.props.backdrop) this.animateBackdropOpen();
 
@@ -269,7 +270,10 @@ export default class ModalBox extends React.PureComponent {
               animOpen,
               positionDest
             });
-            if (this.props.onOpened) this.props.onOpened();
+            if (this.props.onOpened) {
+              closingState = false;
+              this.props.onOpened();
+            }
           });
         });
       }
@@ -345,7 +349,7 @@ export default class ModalBox extends React.PureComponent {
    * Only used if swipeToClose is enabled
    */
   createPanResponder(position) {
-    let closingState = false;
+    closingState = false;
     let inSwipeArea = false;
 
     const onPanStart = (evt, state) => {
@@ -366,10 +370,12 @@ export default class ModalBox extends React.PureComponent {
     const animEvt = Animated.event([null, {customY: position}], {useNativeDriver: false});
 
     const onPanMove = (evt, state) => {
+      
       const newClosingState =
         this.props.entry === 'top'
           ? -state.dy > this.props.swipeThreshold
           : state.dy > this.props.swipeThreshold;
+          console.log("newClosingState", newClosingState, closingState);
       if (this.props.entry === 'top' ? state.dy > 0 : state.dy < 0) return;
       if (newClosingState != closingState && this.props.onClosingState)
         this.props.onClosingState(newClosingState);
